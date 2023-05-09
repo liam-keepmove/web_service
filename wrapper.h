@@ -1,9 +1,7 @@
-/*
- * csapp_alter.h - prototypes and definitions for the CS:APP3e book
- */
-/* $begin csapp_alter.h */
-#ifndef __CSAPP_H__
-#define __CSAPP_H__
+#pragma once
+
+#ifndef __WRAPPER_H
+#define __WRAPPER_H
 
 #include <stdio.h>
 #include <stdlib.h>
@@ -20,7 +18,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <sys/mman.h>
-#include <errno.h>
+#include <errno.h>  //从某个标准开始,errno的存储范围是线程区域,和加了thread_local一样.
 #include <math.h>
 #include <pthread.h>
 #include <semaphore.h>
@@ -28,50 +26,19 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
-#include <cstdarg>
-#include <string>
-using std::string;
-using std::to_string;
-
-void log(string tag,FILE* fptr,char const* fmt,...);
-
-/* Default file permissions are DEF_MODE & ~DEF_UMASK */
-/* $begin createmasks */
-#define DEF_MODE   S_IRUSR|S_IWUSR|S_IRGRP|S_IWGRP|S_IROTH|S_IWOTH
-#define DEF_UMASK  S_IWGRP|S_IWOTH
-/* $end createmasks */
 
 /* Simplifies calls to bind(), connect(), and accept() */
-/* $begin sockaddrdef */
 typedef struct sockaddr SA;
-/* $end sockaddrdef */
 
-/* Persistent state for the robust I/O (Rio) package */
-/* $begin rio_t */
-#define RIO_BUFSIZE 8192
-typedef struct {
-    int rio_fd;                /* Descriptor for this internal buf */
-    int rio_cnt;               /* Unread bytes in internal buf */
-    char *rio_bufptr;          /* Next unread byte in internal buf */
-    char rio_buf[RIO_BUFSIZE]; /* Internal buffer */
-} rio_t;
-/* $end rio_t */
 
 /* External variables */
-extern int h_errno;    /* Defined by BIND for DNS errors */
 extern char **environ; /* Defined by libc */
 
 /* Misc constants */
-#define	MAXLINE	 8192  /* Max text line length */
+#define	MAXLINE	 8192  /* Max text lineBuf length */
 #define MAXBUF   8192  /* Max I/O buffer size */
 #define LISTENQ  1024  /* Second argument to listen() */
-
-/* Our own error-handling functions */
-void unix_error(char *msg);
-void posix_error(int code, char *msg);
-void dns_error(char *msg);
-void gai_error(int code, char *msg);
-void app_error(char *msg);
+#define PAGE_SIZE_AVE 1*1024*1024
 
 /* Process control wrappers */
 pid_t Fork(void);
@@ -96,15 +63,6 @@ void Sigdelset(sigset_t *set, int signum);
 int Sigismember(const sigset_t *set, int signum);
 int Sigsuspend(const sigset_t *set);
 
-/* Sio (Signal-safe I/O) routines */
-ssize_t sio_puts(char s[]);
-ssize_t sio_putl(long v);
-void sio_error(char s[]);
-
-/* Sio wrappers */
-ssize_t Sio_puts(char s[]);
-ssize_t Sio_putl(long v);
-void Sio_error(char s[]);
 
 /* Unix I/O wrappers */
 int Open(const char *pathname, int flags, mode_t mode);
@@ -145,7 +103,7 @@ void Free(void *ptr);
 /* Sockets interface wrappers */
 int Socket(int domain, int type, int protocol);
 void Setsockopt(int s, int level, int optname, const void *optval, int optlen);
-void Bind(int sockfd, struct sockaddr *my_addr, int addrlen);
+void Bind(int sockfd, struct sockaddr *my_addr, socklen_t addrlen);
 void Listen(int s, int backlog);
 int Accept(int s, struct sockaddr *addr, socklen_t *addrlen);
 void Connect(int sockfd, struct sockaddr *serv_addr, int addrlen);
@@ -178,28 +136,7 @@ void Sem_init(sem_t *sem, int pshared, unsigned int value);
 void P(sem_t *sem);
 void V(sem_t *sem);
 
-/* Rio (Robust I/O) package */
-ssize_t rio_readn(int fd, void const* usrbuf, size_t n);
-ssize_t rio_writen(int fd, void const* usrbuf, size_t n);
-void rio_readinitb(rio_t *rp, int fd);
-ssize_t	rio_readnb(rio_t *rp,void const* usrbuf, size_t n);
-ssize_t	rio_readlineb(rio_t *rp, void const* usrbuf, size_t maxlen);
+/* IPC wrappers*/
+int Pipe(int pipefd[2]);
 
-/* Wrappers for Rio package */
-ssize_t Rio_readn(int fd, void *usrbuf, size_t n);
-void Rio_writen(int fd,void const * usrbuf, size_t n);
-void Rio_readinitb(rio_t *rp, int fd);
-ssize_t Rio_readnb(rio_t *rp, void *usrbuf, size_t n);
-ssize_t Rio_readlineb(rio_t *rp, void *usrbuf, size_t maxlen);
-
-/* Reentrant protocol-independent client/server helpers */
-int open_clientfd(char *hostname, char *port);
-int open_listenfd(char *port);
-
-/* Wrappers for reentrant protocol-independent client/server helpers */
-int Open_clientfd(char *hostname, char *port);
-int Open_listenfd(char *port);
-
-
-#endif /* __CSAPP_H__ */
-/* $end csapp_alter.h */
+#endif //__WRAPPER_H

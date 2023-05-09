@@ -1,0 +1,4 @@
+# 配置忽略项
+.git
+.vscode
+.idea

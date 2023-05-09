@@ -37,6 +37,7 @@ public:
 //初始化一个sbuf_t
 template<typename K>
 Pool<K>::Pool(int bufLen) {
+    if(bufLen<=0)   throw std::runtime_error("bufLen must greater than 0.");
     sp.buf = (K*) Calloc(bufLen, sizeof(K));
     sp.bufLen = bufLen;
     sp.front = sp.rear = 0;
@@ -64,14 +65,15 @@ void Pool<K>::push(const K& item) {
 //一个元素从头部出队列
 template<typename K>
 K Pool<K>::pop(K* ans) {
-    K item = 0;
+    K item;
     P(&sp.items);  //等待到有或减少一个可用元素,为弹出元素做准备.(同步锁)
     P(&sp.mutex);  //互斥锁加锁
     item = sp.buf[sp.front];
     sp.front = (sp.front + 1) % sp.bufLen;
     V(&sp.mutex);  //互斥锁解锁
     V(&sp.slots);  //空槽位数量加一
-    *ans = item;
+    if (ans != nullptr)
+        *ans = item;
     return item;
 }
 
