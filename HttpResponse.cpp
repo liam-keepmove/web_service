@@ -138,8 +138,7 @@ byteBuf HttpResponse::convertByteBuf() const {
 void HttpResponse::sendData(int fd) const {
     if (fd < 0) throw std::range_error("fd不能小于0");
     auto byteBuf = this->convertByteBuf();
-    if (Rio::writen(fd, byteBuf.data(), byteBuf.length()) != byteBuf.length())
-        throw std::runtime_error("响应发送失败");
+    Rio::writen(fd, byteBuf.data(), byteBuf.length());
 }
 
 void HttpResponse::deleteHeader(const string& head) {

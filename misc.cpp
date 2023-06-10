@@ -3,7 +3,7 @@
 * create time:5/6/2022 21:13:39
 */
 
-#include "miscFunc.hpp"
+#include "misc.hpp"
 
 //字符串是否全由十进制数字组成
 bool isAllDigit(const string& str) {

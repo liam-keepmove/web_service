@@ -1,4 +1,5 @@
 # 配置忽略项
-.git
-.vscode
-.idea
+.idea/
+.vscode/
+.git/
+/logs

@@ -1,16 +1,6 @@
 #include "wrapper.h"
 #include<iostream>
 
-class cFunctionError : public std::runtime_error {
-public:
-    cFunctionError(const std::string& msg) : std::runtime_error(msg) {
-    }
-
-    char const* what() const noexcept override {
-        return runtime_error::what();
-    }
-};
-
 void throwError(const std::string& msg) {
     throw cFunctionError(msg);
 }

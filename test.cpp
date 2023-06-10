@@ -1,14 +1,20 @@
-#include<unistd.h>
 #include<iostream>
 #include<thread>
-#include<cerrno>
-#include<regex>
-using std::string;
+#include<cstdlib>
+#include<ctime>
+
+void handler(){
+    printf("-----------------------------------------");
+    printf("%d\t%d\t%d\t%d\t%d\n",rand(),rand(),rand(),rand(),rnad());
+    printf("%d\t%d\t%d\t%d\t%d\n",rand(),rand(),rand(),rand(),rnad());
+    printf("%d\t%d\t%d\t%d\t%d\n",rand(),rand(),rand(),rand(),rnad());
+    printf("%d\t%d\t%d\t%d\t%d\n",rand(),rand(),rand(),rand(),rnad());
+    printf("%d\t%d\t%d\t%d\t%d\n",rand(),rand(),rand(),rand(),rnad());
+    printf("-----------------------------------------");
+}
 
 int main(){
-    string str="abc";
-    auto pos=str.rfind('?');
-    string str2 = str.substr(pos+1);
-    std::cout<<pos<<std::endl;
-    std::cout<<str2<<std::endl;
+    srand(time(nullptr));
+    thread t1
+    printf("fcuk" "" "mor th");
 }

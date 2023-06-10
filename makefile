@@ -1,34 +1,35 @@
-objects=wrapper.o miscFunc.o NetworkAction.o Rio.o HttpResponse.o HttpRequest.o LogOutput.o HttpServer.o shoot.o
+.PHONY: all clean
+objects=wrapper.o misc.o NetworkAction.o Rio.o HttpResponse.o HttpRequest.o LogOutput.o HttpServer.o shoot.o
 
 all:$(objects)
-	g++ -std=gnu++11 -o shoot.out $(objects) -lpthread
+	g++ -std=c++17 -o shoot.out $(objects) -lpthread
 
 shoot.o:HttpServer.o shoot.cpp
-	g++ -std=gnu++11 -c shoot.cpp
+	g++ -std=c++17 -c shoot.cpp
 
 wrapper.o:wrapper.h wrapper.cpp
-	g++ -std=gnu++11 -c wrapper.cpp
+	g++ -std=c++17 -c wrapper.cpp
 
 NetworkAction.o:wrapper.o NetworkAction.hpp NetworkAction.cpp
-	g++ -std=gnu++11 -c NetworkAction.cpp
+	g++ -std=c++17 -c NetworkAction.cpp
 
 Rio.o:Rio.hpp Rio.cpp
-	g++ -std=gnu++11 -c Rio.cpp
+	g++ -std=c++17 -c Rio.cpp
 
 HttpResponse.o:HttpResponse.hpp HttpResponse.cpp Rio.o
-	g++ -std=gnu++11 -c HttpResponse.cpp
+	g++ -std=c++17 -c HttpResponse.cpp
 
 HttpRequest.o:HttpRequest.hpp HttpRequest.cpp Rio.o
-	g++ -std=gnu++11 -c HttpRequest.cpp
+	g++ -std=c++17 -c HttpRequest.cpp
 
-miscFunc.o:miscFunc.hpp miscFunc.cpp
-	g++ -std=gnu++11 -c miscFunc.cpp
+misc.o:misc.hpp misc.cpp
+	g++ -std=c++17 -c misc.cpp
 
-LogOutput.o:LogOutput.hpp LogOutput.cpp miscFunc.o
-	g++ -std=gnu++11 -c LogOutput.cpp
+LogOutput.o:LogOutput.hpp LogOutput.cpp misc.o
+	g++ -std=c++17 -c LogOutput.cpp
 
-HttpServer.o:HttpServer.hpp HttpServer.cpp wrapper.o LogOutput.o HttpRequest.o HttpResponse.o Pool.o NetworkAction.o
-	g++ -std=gnu++11 -c HttpServer.cpp
+HttpServer.o:HttpServer.hpp HttpServer.cpp wrapper.o LogOutput.o HttpRequest.o HttpResponse.o NetworkAction.o
+	g++ -std=c++17 -c HttpServer.cpp
 
 clean:
 	-rm -f $(objects)

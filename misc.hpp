@@ -5,10 +5,10 @@
 */
 
 
-#ifndef TINYWEB_MISCFUNC_HPP
-#define TINYWEB_MISCFUNC_HPP
+#ifndef TINYWEB_MISC_HPP
+#define TINYWEB_MISC_HPP
 
-#include<string>
+#include <string>
 #include <sys/time.h>
 
 using std::string;
@@ -20,4 +20,4 @@ bool isAllDigit(const string& str);
 //获取当前时间,精确到毫秒
 string getNowTimeStr();
 
-#endif //TINYWEB_MISCFUNC_HPP
+#endif //TINYWEB_MISC_HPP

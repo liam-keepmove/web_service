@@ -15,5 +15,5 @@ tinyWebPid|目前状态|总共处理过的连接数量|当前连接数量|>命�
 4821|running|3149934|23|>
 
 已完成的需求:
-1.log增加时间(%Y/%m/%d %H:%M:%s.毫秒)
-7.每个线程一个log输出文本threadNum_port_output.log,log等级分为info,debug,warning,error
+1.log增加时间(%Y/%m/%dfmt %H:%M:%s.毫秒)
+7.每个线程一个log输出文本threadNum_port_output.logf,log等级分为info,debug,warning,error

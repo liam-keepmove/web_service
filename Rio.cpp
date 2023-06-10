@@ -8,7 +8,8 @@
 ssize_t Rio::rioRead(char* usrBuf, ssize_t n) {
     if (n < 0) throw std::runtime_error("n不能为负数");
     while (rio.unreadCount <= 0) {  /* Refill if buf is empty */
-        rio.unreadCount = limitTimeToRead(rio.fd, rio.buf, sizeof(rio.buf), nullptr);
+//        rio.unreadCount = limitTimeToRead(rio.fd, rio.buf, sizeof(rio.buf), nullptr);
+        rio.unreadCount = read(rio.fd, rio.buf, sizeof(rio.buf));
         if (rio.unreadCount == 0) {  /* EOF */
             return 0;
         } else
@@ -31,9 +32,11 @@ ssize_t Rio::readn(int fd, void* usrBuf, ssize_t n) {
     char* bufPtr = (char*) usrBuf;
 
     while (leftCount > 0) {
-        if ((rc = limitTimeToRead(fd, bufPtr, leftCount, nullptr)) < 0) {
+        if ((rc = read(fd, usrBuf, n)) < 0) {
             if (errno == EINTR) /* Interrupted by sig handler return */
                 rc = 0;      /* and call rioRead() again */
+            else if (errno == EAGAIN || errno == EWOULDBLOCK)
+                break;              /* fd reach blocking time */
             else
                 throw std::runtime_error(std::strerror(errno));
         } else if (rc == 0)
@@ -64,7 +67,7 @@ ssize_t Rio::writen(int fd, void const* usrBuf, ssize_t n) {
     return n;
 }
 
-//read带计时器的包裹函数,默认阻塞3秒钟
+//read带计时器的包裹函数(使用select),默认阻塞3秒钟
 ssize_t Rio::limitTimeToRead(int fd, void* usrBuf, ssize_t n, struct timeval* limit) {
     if (n < 0) throw std::runtime_error("n不能为负数");
     if (fd < 0) throw std::runtime_error("fd不能为负数");
@@ -74,10 +77,9 @@ ssize_t Rio::limitTimeToRead(int fd, void* usrBuf, ssize_t n, struct timeval* li
     FD_SET(fd, &fdSet);
     int rc = 0;
     if (limit == nullptr) {
-        //TODO: 搞明白,为什么select每次都会阻塞完所有时间才返回.
         struct timeval limitTime = {3, 0};
         rc = select(fd + 1, &fdSet, nullptr, nullptr, &limitTime);  /* The default delay is five seconds */
-    } else{
+    } else {
         rc = select(fd + 1, &fdSet, nullptr, nullptr, limit);
     }
 

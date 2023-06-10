@@ -5,9 +5,9 @@
 
 #include "HttpServer.hpp"
 
-static thread_local LogOutput logOutput;
+thread_local LogOutput logOutput;
 
-void HttpServer::sigpipeHandler(int sig) {  //多线程的每个线程都需要注册这个信号.
+void HttpServer::sigpipeHandler(int sig) {
     logOutput.e("The peer closes the connection and the remaining bytes may not be received\n");
 }
 
@@ -24,7 +24,7 @@ void HttpServer::updateErrorMsgCache() {
     auto errorDir = Opendir(errorDirPath);
     struct dirent* dirEnt = nullptr;
     while ((dirEnt = Readdir(errorDir)) != nullptr) {
-        if (dirEnt->d_type == DT_REG && std::regex_match(dirEnt->d_name, fileNameRegex)) {  //是常规文件而且名称全为数字
+        if (dirEnt->d_type == DT_REG && std::regex_match(dirEnt->d_name, fileNameRegex)) {  //是常规文件而且名称全为数字.html
             struct stat fileStat = {};
             string fileName = (errorDirPath + string() + dirEnt->d_name);
             Stat(fileName.c_str(), &fileStat);
@@ -41,7 +41,8 @@ void HttpServer::updateErrorMsgCache() {
 
 bool HttpServer::checkAndInit(HttpRequest& request, HttpResponse& response) {
     string path = request.getPath();
-    if (path.find("../") != string::npos || path.find("~/") != string::npos || path == "/")
+    //if (path.find("../") != string::npos || path.find("~/") != string::npos || path == "/")
+    if (path.find("~/") != string::npos || path == "/")
         request.setPath(webFileDirPath + string() + defaultHtmlName);
     else
         request.setPath(webFileDirPath + path);
@@ -146,62 +147,61 @@ void HttpServer::scheduler(HttpRequest& request, HttpResponse& response) {
 
 void HttpServer::httpThread(const int threadSerial) {
     logOutput.reDirect(logDirPath + to_string(threadSerial) + "_" + to_string(port) + ".log");
-    Signal(SIGPIPE, &sigpipeHandler);
     while (true) {
         HttpRequest request;
         HttpResponse response;
         int fd = 0;
         try {
             fd = fdPool.pop();
+            logOutput.ifmt("Start processing fd=%d request.", fd);
             request.fillData(fd);
             scheduler(request, response);
+            response.sendData(fd);
+            logOutput.ifmt("response.body size:%zu", response.getBody().size());
         } catch (const std::invalid_argument& err) {
-            fprintf(stderr, "%s\n", err.what());  //一般是 HTTP原始报文不符合规范
-            continue;
+            logOutput.e(err.what());  //一般是 HTTP原始报文不符合规定格式
         } catch (const std::regex_error& err) {
-            fprintf(stderr, "%s\n", err.what());
-            continue;
+            logOutput.e(err.what());
+        } catch (const cFunctionError& err) {
+            logOutput.e(err.what());
         } catch (const std::runtime_error& err) {
-            fprintf(stderr, "%s\n", err.what());
+            logOutput.e(err.what());
             response.setStatusCode(500);
             response.setHeader("Content-Length", to_string(errorMsgCache.at(500).size()));
             response.setHeader("Content-Type", getFileMiMeType("html"));
             if (request.getMethod() != "HEAD")
                 response.setBody(errorMsgCache.at(500));
-        } catch (const std::out_of_range& err) {
-            fprintf(stderr, "%s\n", err.what());
-            continue;
-        } catch (...) {
-            fprintf(stderr, "%s\n", __PRETTY_FUNCTION__);
-            continue;
-        }
-
-        try {
             response.sendData(fd);
-            fprintf(stderr, "response.body size:%lu\n", response.getBody().size());
-            Close(fd);
+        } catch (const std::out_of_range& err) {
+            logOutput.e(err.what());
         } catch (...) {
-            fprintf(stderr, "%s\n", __PRETTY_FUNCTION__);
+            logOutput.e("Unknown Error,The program may not work properly.");
         }
+        Close(fd);
+        logOutput.i("close socket fd.");
+        logOutput.i("-------------NEXT-----------------");
     }
-
 }
 
 void HttpServer::run() {
+    Signal(SIGPIPE, &sigpipeHandler);
     try {
         for (int i = 1; i <= threadNum; ++i) {
             std::thread(&HttpServer::httpThread, this, i).detach();
         }
         int listenFd = openListenFd(to_string(port).c_str());
-        logOutput.i("Http Server Start.");
+        logOutput.ifmt("Http Server Start.");
         while (true) {
             int tcpFd = Accept(listenFd, nullptr, nullptr);
+            //默认每个socket最多阻塞3s
+            struct timeval timeout = {0,100};
+            Setsockopt(tcpFd, SOL_SOCKET, SO_RCVTIMEO, (char *)&timeout, sizeof(struct timeval));
             fdPool.push(tcpFd);
         }
     } catch (const std::runtime_error& err) {
-        logOutput.e(err.what());
+        logOutput.efmt(err.what());
     } catch (...) {
-        logOutput.e(__PRETTY_FUNCTION__);
+        logOutput.efmt(__PRETTY_FUNCTION__);
     }
 }
 

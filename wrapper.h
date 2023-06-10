@@ -26,6 +26,18 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <arpa/inet.h>
+#include <string>
+#include <stdexcept>
+
+class cFunctionError : public std::runtime_error {
+public:
+    cFunctionError(const std::string& msg) : std::runtime_error(msg) {
+    }
+
+    char const* what() const noexcept override {
+        return runtime_error::what();
+    }
+};
 
 /* Simplifies calls to bind(), connect(), and accept() */
 typedef struct sockaddr SA;
@@ -38,7 +50,7 @@ extern char **environ; /* Defined by libc */
 #define	MAXLINE	 8192  /* Max text lineBuf length */
 #define MAXBUF   8192  /* Max I/O buffer size */
 #define LISTENQ  1024  /* Second argument to listen() */
-#define PAGE_SIZE_AVE 1*1024*1024
+#define PAGE_SIZE_AVE 2*1024*1024  /*根据 HTTP Archive 的数据，全球范围内的网页平均大小约为1.9 MB（2021年数据）*/
 
 /* Process control wrappers */
 pid_t Fork(void);
